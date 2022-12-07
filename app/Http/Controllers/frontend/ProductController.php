@@ -34,124 +34,33 @@ class ProductController extends Controller
 
   //All products from Category and/or Sub-category and/or Child-category (Go this page When click to Main Category)
 
-
-  public function productSub_list($slug)
+  public function categoryProducts($slug)
   {
-   return $render['category'] = Category::with('child_category.childs.products')->where('slug', $slug)->first();
-    $productIds = [];
-
-    if (!empty($render['category']->products)) {
-      foreach ($render['category']->products as $key => $product) {
-        array_push($productIds, $product->id);
-      }
-    }
-    if (!empty($render['category']->child_category)) {
-
-      foreach ($render['category']->child_category as $subCategory) {
-
-        if (!empty($subCategory->products)) {
-          foreach ($subCategory->products as $product) {
-            array_push($productIds, $product->id);
-          }
-        }
-
-        if (!empty($subCategory->childs)) {
-          foreach ($subCategory->childs as $childCategory) {
-            if (!empty($childCategory->products)) {
-              foreach ($childCategory->products as $product) {
-                array_push($productIds, $product->id);
-              }
-            }
-          }
-        }
-      }
-    }
-
+    $render['category'] = Category::where('slug', $slug)->first();
+    $productIds = $this->getProductIds($slug);
     $render['products'] = Product::whereIn('id', $productIds)->paginate(10);
     return view('frontend.products.main_category.product_list', $render);
   }
 
 
-
   //Products list of sub-category
 
-  public function productList($slug)
+  public function subCategoryProducts($slug)
   {
-
-    $data['sub_category'] = Category::select('id', 'name', 'slug', 'category_id', 'banner')->where('slug', $slug)->first();
-
-    $child = [];
-
-
-    if ($data['sub_category']->products->count() > 0) {
-
-      foreach ($data['sub_category']->products as $product) {
-
-        array_push($child, [
-          'title' => $product->title,
-          'image' => $product->image,
-          'price' => $product->price,
-          'sale_price' => $product->sale_price,
-          'id' => $product->id,
-          'slug' => $product->slug,
-
-        ]);
-      }
-    }
-
-
-    foreach ($data['sub_category']->child as $childcat) {
-
-
-      if ($childcat->products->count() > 0) {
-
-        foreach ($childcat->products as $product) {
-
-          array_push($child, [
-            'title' => $product->title,
-            'image' => $product->image,
-            'price' => $product->price,
-            'sale_price' => $product->sale_price,
-            'id' => $product->id,
-            'slug' => $product->slug,
-
-          ]);
-        }
-      }
-    }
-    $data['products'] = $this->paginate($child, 12, '', ['path' => Paginator::resolveCurrentPath()]);
-
-    $data['child_categories'] =  $data['sub_category']->child()->paginate(10);
-    return view('frontend.products.product_list', $data);
+    $render['sub_category'] = Category::where('slug', $slug)->first();
+    $productIds = $this->getProductIds($slug);
+    $render['products'] = Product::whereIn('id', $productIds)->paginate(10);
+    $render['child_categories'] =  $render['sub_category']->childs()->paginate(10);
+    return view('frontend.products.product_list', $render);
   }
   //List of Child-Category
 
-  public function productListChild($slug)
+  public function childCategoryProducts($slug)
   {
-
-    $child = [];
-
-    $data['child_category'] = Category::select('id', 'name', 'slug', 'category_id', 'banner')->where('slug', $slug)->first();
-
-    if ($data['child_category']->products->count() > 0) {
-
-      foreach ($data['child_category']->products as $product) {
-
-        array_push($child, [
-          'title' => $product->title,
-          'image' => $product->image,
-          'price' => $product->price,
-          'sale_price' => $product->sale_price,
-          'id' => $product->id,
-          'slug' => $product->slug,
-
-        ]);
-      }
-    }
-
-    $data['products'] = $this->paginate($child, 12, '', ['path' => Paginator::resolveCurrentPath()]);
-
-    return view('frontend.products.products_list_from_child', $data);
+    $render['child_category'] = Category::where('slug', $slug)->first();
+    $productIds = $this->getProductIds($slug);
+    $render['products'] = Product::whereIn('id', $productIds)->paginate(10);
+    return view('frontend.products.products_list_from_child', $render);
   }
 
 
@@ -195,5 +104,55 @@ class ProductController extends Controller
     $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
     $items = $items instanceof Collection ? $items : Collection::make($items);
     return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+  }
+
+  public function getProductIds($slug)
+  {
+    $render['category'] = Category::with('child_category', 'products', 'child_category.childs.products')->where('slug', $slug)->first();
+    $productIds = [];
+
+    //Gatting products ids from category.
+
+    if (!empty($render['category']->products)  && isset($render['category']->products)) {
+      foreach ($render['category']->products as $key => $product) {
+        array_push($productIds, $product->id);
+      }
+    }
+
+    //Gatting products ids from sub category.
+
+    if (!empty($render['category']->child_category) && isset($render['category']->child_category)) {
+      foreach ($render['category']->child_category as $subCategory) {
+
+        if (!empty($subCategory->products)  && isset($subCategory->products)) {
+          foreach ($subCategory->products as $key => $product) {
+            array_push($productIds, $product->id);
+          }
+        }
+
+
+        if (!empty($subCategory->childs)  && isset($subCategory->childs)) {
+          foreach ($subCategory->childs as $key => $childCategory) {
+
+            foreach ($childCategory->products as $key => $product) {
+              array_push($productIds, $product->id);
+            }
+          }
+        }
+      }
+    }
+
+    //Gatting products ids from child category.
+
+    if (!empty($render['category']->childs)  && isset($render['category']->childs)) {
+      foreach ($render['category']->childs as $key => $childCategory) {
+
+        foreach ($childCategory->products as $key => $product) {
+          array_push($productIds, $product->id);
+        }
+      }
+    }
+
+    return $productIds;
   }
 }

@@ -36,9 +36,9 @@ Route::get('/home', [ProductController::class,'productsIndex'])->name('frontend.
 Route::get('/product/featured', [ProductController::class, 'featuredProducts'])->name('frontend.product.featured');
 Route::get('/product/best_seller', [ProductController::class, 'topProducts'])->name('frontend.product.best_seller');
 Route::get('/product/recent', [ProductController::class, 'recentProducts'])->name('frontend.product.recent');
-Route::get('/productsublist/{slug}', [ProductController::class,'productSub_list'])->name('frontend.product.sub_list');
-Route::get('/product_list/{slug}', [ProductController::class, 'productList'])->name('frontend.product.products_list');
-Route::get('/product_list_child/{slug}', [ProductController::class, 'productListChild'])->name('frontend.product.products_list_child');
+Route::get('/productsublist/{slug}', [ProductController::class,'categoryProducts'])->name('frontend.product.sub_list');
+Route::get('/product_list/{slug}', [ProductController::class, 'subCategoryProducts'])->name('frontend.product.products_list');
+Route::get('/product_list_child/{slug}', [ProductController::class, 'childCategoryProducts'])->name('frontend.product.products_list_child');
 Route::get('/product/{slug}', [ProductController::class, 'productShow'])->name('frontend.product.show');
 
 
