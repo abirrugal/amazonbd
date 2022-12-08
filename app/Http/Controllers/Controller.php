@@ -32,14 +32,13 @@ class Controller extends BaseController
     }
 
     public function totalCartQuantityCount(){
-        $data['cart'] = session('cart')? session('cart'):[];
+        $data['cart'] = session('cart') ?? [];
         $totalProducts = array_sum(array_column($data['cart'],'quantity'));
         return $totalProducts;
-
     }
 
     public function totalCartPriceCount(){
-        $data['cart'] = session('cart')? session('cart'):[];
+        $data['cart'] = session('cart')??[];
         $totalPrice = array_sum(array_column($data['cart'],'total_price'));
         return $totalPrice;
 
