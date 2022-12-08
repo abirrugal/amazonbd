@@ -4,16 +4,16 @@ namespace App\Http\Controllers\frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use app\Http\Traits\pagination;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 // use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
+
 
 class ProductController extends Controller
 {
+  use pagination;
   //List of Categories to the home page
 
   public function productsIndex()
@@ -97,15 +97,6 @@ class ProductController extends Controller
   }
 
 
-  //Custom Pagination
-
-  public function paginate($items, $perPage = 5, $page = null, array $options = [])
-  {
-    $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
-    $items = $items instanceof Collection ? $items : Collection::make($items);
-    return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
-  }
-
   public function getProductIds($slug)
   {
     $render['category'] = Category::with('child_category', 'products', 'child_category.childs.products')->where('slug', $slug)->first();
@@ -130,10 +121,8 @@ class ProductController extends Controller
           }
         }
 
-
         if (!empty($subCategory->childs)  && isset($subCategory->childs)) {
           foreach ($subCategory->childs as $key => $childCategory) {
-
             foreach ($childCategory->products as $key => $product) {
               array_push($productIds, $product->id);
             }
